@@ -1,19 +1,15 @@
 import { Application, Router } from "https://deno.land/x/oak@v6.1.0/mod.ts";
-import * as flags from "https://deno.land/std/flags/mod.ts";
+import { parse } from "https://deno.land/std/flags/mod.ts";
 
-const { args } = Deno;
-const argPort = flags.parse(Deno.args).port;
-
+const argPort = parse(Deno.args).port;
 const PORT = argPort ? Number(argPort) : 5002;
-
-const OUTFILE = `data.txt`;
 
 const fetchData = async (latitude: string, longitude: string) => {
   const result = await fetch(
     `https://rucsoundings.noaa.gov/get_soundings.cgi?start=latest&airport=${latitude}%2C${longitude}`,
   );
   const body = new Uint8Array(await result.arrayBuffer());
-  // await Deno.writeFile(OUTFILE, body);
+  // await Deno.writeFile('data.txt', body);
   return body;
 };
 
@@ -22,8 +18,6 @@ const transformData = (body: Uint8Array, elevation: number = 0) => {
     /\n/,
   );
   const [, , , , latitude, longitude] = cape1.split(/[\s]+/);
-
-  console.log(cape1.split(/[\s]+/));
 
   return {
     latitude,
