@@ -4,7 +4,7 @@
     "start": {
       "cmd": "index.ts",
       "desc": "start app",
-      "allow": ["net", "read", "write"]
+      "allow": ["env", "net", "read", "write"]
     }
   }
 }
