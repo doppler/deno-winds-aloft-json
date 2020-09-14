@@ -64,6 +64,7 @@ router
       const elevation = Number(ctx.params.elevation) || 0;
       const body = await fetchData(ctx.params.latitude, ctx.params.longitude);
       ctx.response.type = "application/json";
+      ctx.response.headers.append("Access-Control-Allow-Origin", "*");
       ctx.response.body = transformData(body, elevation);
     }
   });
