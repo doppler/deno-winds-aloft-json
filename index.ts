@@ -23,12 +23,12 @@ const transformData = (body: Uint8Array, elevation: number = 0) => {
 
   return {
     type,
-    hour,
+    hour: Number(hour),
     month,
-    day,
-    year,
-    latitude,
-    longitude,
+    day: Number(day),
+    year: Number(year),
+    latitude: Number(latitude),
+    longitude: Number(longitude),
     elevation,
     soundings: rest.map((t) => {
       let [, linType, pressure, height, temp, dewPt, windDir, windSpd] = t
