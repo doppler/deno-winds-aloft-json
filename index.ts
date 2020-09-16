@@ -1,4 +1,4 @@
-import { Application, Router } from "https://deno.land/x/oak@v6.1.0/mod.ts";
+import { Application, Router } from "https://deno.land/x/oak@v6.2.0/mod.ts";
 import { parse } from "https://deno.land/std/flags/mod.ts";
 
 const argPort = parse(Deno.args).port;
@@ -14,12 +14,19 @@ const fetchData = async (latitude: string, longitude: string) => {
 };
 
 const transformData = (body: Uint8Array, elevation: number = 0) => {
-  const [, , , cape1, , , , , ...rest] = new TextDecoder().decode(body).split(
-    /\n/,
-  );
+  const [, op40, , cape1, , , , , ...rest] = new TextDecoder().decode(body)
+    .split(
+      /\n/,
+    );
+  const [type, hour, day, month, year] = op40.split(/[\s]+/);
   const [, , , , latitude, longitude] = cape1.split(/[\s]+/);
 
   return {
+    type,
+    hour,
+    month,
+    day,
+    year,
     latitude,
     longitude,
     elevation,
