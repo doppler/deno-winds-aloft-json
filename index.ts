@@ -5,8 +5,33 @@ const argPort = parse(Deno.args).port;
 const PORT = argPort ? Number(argPort) : 5002;
 
 const fetchData = async (latitude: string, longitude: string) => {
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  const d = new Date();
+  const queryObj = {
+    airport: `${latitude}%2C${longitude}`,
+    startSecs: Math.floor(Date.now() / 1000),
+    endSecs: Math.floor(Date.now() / 1000) + 3600,
+  };
+  const queryStr = Object.entries(queryObj).map((pair) => pair.join("=")).join(
+    "&",
+  );
+  // console.log(queryStr);
+  // const queryStr = `start=latest&airport=${latitude}%2C${longitude}`
   const result = await fetch(
-    `https://rucsoundings.noaa.gov/get_soundings.cgi?start=latest&airport=${latitude}%2C${longitude}`,
+    `https://rucsoundings.noaa.gov/get_soundings.cgi?${queryStr}`,
   );
   const body = new Uint8Array(await result.arrayBuffer());
   // await Deno.writeFile('data.txt', body);
@@ -14,13 +39,14 @@ const fetchData = async (latitude: string, longitude: string) => {
 };
 
 const transformData = (body: Uint8Array, elevation: number = 0) => {
-  const [, op40, , cape1, , , , , ...rest] = new TextDecoder().decode(body)
+  const decodedBody = new TextDecoder().decode(body);
+  console.log(decodedBody);
+  const [, op40, , cape1, , , , , ...rest] = decodedBody
     .split(
       /\n/,
     );
   const [type, hour, day, month, year] = op40.split(/[\s]+/);
   const [, , , , latitude, longitude] = cape1.split(/[\s]+/);
-
   return {
     type,
     hour: Number(hour),
