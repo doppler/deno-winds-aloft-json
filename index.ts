@@ -25,9 +25,9 @@ const fetchData = async (latitude: string, longitude: string) => {
     startSecs: Math.floor(Date.now() / 1000),
     endSecs: Math.floor(Date.now() / 1000) + 3600,
   };
-  const queryStr = Object.entries(queryObj).map((pair) => pair.join("=")).join(
-    "&",
-  );
+  const queryStr = Object.entries(queryObj)
+    .map((pair) => pair.join("="))
+    .join("&");
   // console.log(queryStr);
   // const queryStr = `start=latest&airport=${latitude}%2C${longitude}`
   const result = await fetch(
@@ -40,13 +40,11 @@ const fetchData = async (latitude: string, longitude: string) => {
 
 const transformData = (body: Uint8Array, elevation: number = 0) => {
   const decodedBody = new TextDecoder().decode(body);
-  console.log(decodedBody);
-  const [, op40, , cape1, , , , , ...rest] = decodedBody
-    .split(
-      /\n/,
-    );
+  // console.log(decodedBody);
+  const [, op40, , cape1, , , surface, , ...rest] = decodedBody.split(/\n/);
   const [type, hour, day, month, year] = op40.split(/[\s]+/);
   const [, , , , latitude, longitude] = cape1.split(/[\s]+/);
+  const soundings = [surface, ...rest];
   return {
     type,
     hour: Number(hour),
@@ -56,33 +54,41 @@ const transformData = (body: Uint8Array, elevation: number = 0) => {
     latitude: Number(latitude),
     longitude: Number(longitude),
     elevation,
-    soundings: rest.map((t) => {
-      let [, linType, pressure, height, temp, dewPt, windDir, windSpd] = t
-        .split(
-          /[\s]+/,
-        ).map((v) => Number(v));
-      return {
-        linType,
-        pressure: pressure / 10,
-        height: {
-          meters: height - elevation,
-          feet: Math.round((height - elevation) * 3.28084),
-        },
-        temp: {
-          c: temp / 10,
-          f: Number((((temp / 10) * 1.8) + 32).toFixed(1)),
-        },
-        dewPt: {
-          c: dewPt / 10,
-          f: Number((((dewPt / 10) * 1.8) + 32).toFixed(1)),
-        },
-        windDir,
-        windSpd: {
-          kts: windSpd,
-          mph: Math.round(windSpd * 1.15078),
-        },
-      };
-    }).filter((o) => o.height.feet < 15000),
+    soundings: soundings
+      .map((t) => {
+        let [
+          ,
+          linType,
+          pressure,
+          height,
+          temp,
+          dewPt,
+          windDir,
+          windSpd,
+        ] = t.split(/[\s]+/).map((v) => Number(v));
+        return {
+          linType,
+          pressure: pressure / 10,
+          height: {
+            meters: height - elevation,
+            feet: Math.round((height - elevation) * 3.28084),
+          },
+          temp: {
+            c: temp / 10,
+            f: Number(((temp / 10) * 1.8 + 32).toFixed(1)),
+          },
+          dewPt: {
+            c: dewPt / 10,
+            f: Number(((dewPt / 10) * 1.8 + 32).toFixed(1)),
+          },
+          windDir,
+          windSpd: {
+            kts: windSpd,
+            mph: Math.round(windSpd * 1.15078),
+          },
+        };
+      })
+      .filter((o) => o.height.feet < 16000),
   };
 };
 
